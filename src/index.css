@@ -15,3 +15,10 @@ div.svgTooltip {
   border-radius: 4px;     
   pointer-events: none;     
 }
+
+.Rose {
+  min-width: 300px;
+  min-height: 300px;
+  width: 60%;
+  height: 60%;
+}

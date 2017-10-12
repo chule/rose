@@ -1,26 +1,57 @@
 import React from 'react';
 import * as d3 from 'd3';
 import isEqual from 'lodash.isequal';
+import sizeMe from 'react-sizeme';
 
 class Rose extends React.Component {
 
   constructor(props) {
     super(props);
     this.saveContainer = this.saveContainer.bind(this);
+
+    //this.currentContainerWidth = this.saveContainer.getBoundingClientRect().width;
   }
 
   componentDidMount() {
-    
+    this.renderChart(this.props);
+  }
 
-    this.width = this.props.width;
-    this.height = this.props.height;
+  componentWillReceiveProps(nextProps) {
+    if (this.props.size.width !== nextProps.size.width) {
+      this.renderChart(nextProps);
+    }
 
-    this.radius = Math.min(this.width, this.height) / 2;
+    if (!isEqual(nextProps.dataset, this.props.dataset)) {
+      this.draw(nextProps.dataset);
+    }
+  }
+
+  renderChart(props) {
+    d3.select(this.container).select('svg').remove();
+
+    // const margin = {
+    //   top: -40,
+    //   right: 25,
+    //   bottom: 200,
+    //   left: 25,
+    // };
+
+    const margin = {
+      top: 0,
+      right: 0,
+      bottom: 20,
+      left: 0
+    };
+
+    this.width = props.size.width - margin.left - margin.right;
+    this.height = props.size.width - margin.top - margin.bottom;
+
+    this.radius = (Math.min(this.width, this.height) / 2) - 20;
 
     this.svg = d3.select(this.container)
       .append('svg')
-      .attr('width', this.props.width)
-      .attr('height', this.props.height);
+      .attr('width', props.size.width)
+      .attr('height', props.size.width);
 
     this.g = this.svg.append("g").attr("transform", "translate(" + this.width / 2 + "," + this.height / 2 + ")");  
     this.legend = ["Desktop", "Tablet", "Mobile"];
@@ -56,8 +87,8 @@ class Rose extends React.Component {
         .append("image")
         .attr("width", 298)
         .attr("height", 60)
-        .attr('x', this.props.width/2 - 155)
-        .attr('y', this.props.height - 60)      
+        .attr('x', props.size.width/2 - 155)
+        .attr('y', props.size.width - 60)      
         .attr("xlink:href", "roseicons/roseLegend.png")
 
     // const legend = this.svg.append("g")
@@ -70,14 +101,7 @@ class Rose extends React.Component {
         .attr("class", "roseTooltip svgTooltip")               
         .style("opacity", 0);
 
-    this.draw(this.props.dataset);
-
-  }
-
-  componentWillUpdate(nextProps) {
-    if (!isEqual(nextProps.dataset, this.props.dataset)) {
-      this.draw(nextProps.dataset);
-    }
+    this.draw(props.dataset);
   }
 
   draw(dataset) {
@@ -99,11 +123,11 @@ class Rose extends React.Component {
 
     var mainScale = d3.scaleLinear()
               .domain([0, maxValue])
-              .range([0, this.radius - 100]);
+              .range([0, this.radius - 50]);
 
     var labelScale = d3.scaleLinear()
               .domain([0, maxValue])
-              .range([0, this.radius - 100]);
+              .range([0, this.radius - 50]);
 
     var pie = d3.pie()
         .sort(null)
@@ -326,15 +350,10 @@ class Rose extends React.Component {
     } = this.props;
 
     return (
-      <div
-        className="zulu5-rose"
-        style={{
-          width,
-          height,
-        }}
-        ref={this.saveContainer}
-      >
-        {children}
+      <div className="zulu5-rose">
+        <div ref={this.saveContainer}>
+          {children}
+        </div>
       </div>
     );
   }
@@ -349,4 +368,8 @@ Rose.defaultProps = {
   onMouseOut: () => {},
 };
 
-export default Rose;
+export default sizeMe({
+  refreshRate: 500,
+  refreshMode: 'debounce',
+  monitorHeight: true,
+})(Rose);
